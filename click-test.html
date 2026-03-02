@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Click Speed & Bot Detector</title>
+  <link rel="stylesheet" href="click-test.css" />
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="hd-left">
+      <div class="logo">🖱</div>
+      <div>
+        <div class="hd-title">Click Speed &amp; Bot Detector</div>
+        <div class="hd-sub">14-signal dual-score analysis — automation detection + human-likeness profiling</div>
+      </div>
+    </div>
+    <div class="controls">
+      <label>Duration
+        <input id="duration" type="number" min="1" value="10">
+        <span style="font-size:12px;color:var(--muted)">s</span>
+      </label>
+      <button class="danger" id="resetBtn">↺ Reset</button>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="stat-key">Total Clicks</div>
+      <div class="stat-val" id="totalClicks">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-key">Live CPS</div>
+      <div class="stat-val c-green" id="runningCps">0.0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-key">Session CPS</div>
+      <div class="stat-val" id="sessionCps">0.0</div>
+      <div class="stat-sub">clicks / duration</div>
+    </div>
+    <div class="stat">
+      <div class="stat-key">Active CPS</div>
+      <div class="stat-val" id="activeCps">0.0</div>
+      <div class="stat-sub">click span rate</div>
+    </div>
+    <div class="stat">
+      <div class="stat-key">Peak CPS</div>
+      <div class="stat-val c-purple" id="maxCps">0.0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-key">Avg Interval</div>
+      <div class="stat-val" id="avgInterval">—</div>
+      <div class="stat-sub" id="minInterval"></div>
+    </div>
+    <div class="stat">
+      <div class="stat-key">Time Left</div>
+      <div class="stat-val" id="timeLeftEl">10<span class="unit">s</span></div>
+      <div class="stat-sub">
+        <span class="pill" id="statusPill">Idle</span>
+        <span class="pointer-badge" id="pointerBadge" style="display:none"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="main">
+
+    <div class="panel">
+      <div class="panel-title">Live Chart</div>
+      <div class="chart-wrap">
+        <canvas id="chart"></canvas>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="chart-note">
+        <span class="c-green">●</span> Real-time CPS (1 s window) &nbsp;
+        <span class="c-purple">●</span> Session CPS
+      </div>
+
+      <div class="diag-panel" id="diagPanel">
+        <div class="diag-toggle" id="diagToggle"><span class="arrow">▶</span> Diagnostics</div>
+        <div class="diag-charts" id="diagCharts">
+          <div>
+            <div class="diag-chart-label">Interval Histogram</div>
+            <div class="diag-chart-wrap"><canvas id="histChart"></canvas></div>
+          </div>
+          <div>
+            <div class="diag-chart-label">Autocorrelation (lags 1–20)</div>
+            <div class="diag-chart-wrap"><canvas id="acChart"></canvas></div>
+          </div>
+          <div>
+            <div class="diag-chart-label">Power Spectrum (Hann DFT)</div>
+            <div class="diag-chart-wrap"><canvas id="specChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Click Area &amp; Analysis</div>
+
+      <div class="click-area" id="clickArea">
+        <div class="ca-idle" id="caIdle">
+          <strong>Click here to start</strong>
+          <p>Set your duration above, then click to begin.<br>
+             Keep clicking as fast as you can — we'll analyze your timing.</p>
+        </div>
+        <div class="ca-running" id="caRunning">
+          <div class="countdown" id="countdown">10</div>
+          <div class="ca-clicks" id="caClicks">0 clicks</div>
+        </div>
+        <div class="ca-done" id="caDone">
+          Session complete — results below
+        </div>
+      </div>
+
+      <div class="results" id="resultsSection">
+
+        <div class="verdict-card" id="verdictCard">
+          <div>
+            <div class="vc-label">Verdict</div>
+            <div class="vc-verdict" id="vcVerdict">—</div>
+            <div class="vc-sub" id="vcSub"></div>
+          </div>
+          <div class="dual-scores">
+            <div class="score-badge">
+              <div class="score-num" id="autoScoreNum">0</div>
+              <div class="score-label">Automation<br>Score</div>
+              <div class="score-bar-wrap">
+                <div class="score-bar" id="autoScoreBar"></div>
+              </div>
+            </div>
+            <div class="score-badge">
+              <div class="score-num" id="humanScoreNum">0</div>
+              <div class="score-label">Human<br>Score</div>
+              <div class="score-bar-wrap">
+                <div class="score-bar" id="humanScoreBar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="clock-profile" id="clockProfile">
+          <div class="cp-label">Clock Profile</div>
+          <div class="cp-vals">
+            <div>Quantum: <span class="cp-val" id="cpQuantum">—</span></div>
+            <div>Frac dist: <span class="digit-spark" id="cpFracDist"></span></div>
+          </div>
+        </div>
+
+        <div class="domain-breakdown" id="domainBreakdown">
+          <div class="domain-header">Score by Domain</div>
+          <div class="domain-list" id="domainList"></div>
+        </div>
+
+        <div class="signals-wrap" id="signalsWrap">
+          <div class="signals-header">Detection Signals (14)</div>
+          <div class="signal-list" id="signalList"></div>
+        </div>
+
+        <div class="footer-note" id="footerNote"></div>
+      </div>
+
+      <div class="idle-hint" id="idleHint">
+        14 signals across 6 domains: physical limits (superhuman speed),
+        timing regularity (CV, repeats, entropy), frequency analysis
+        (multi-lag autocorrelation, Hann DFT), mouse dynamics (coordinate repetition,
+        direction-change jitter, pre-click movement, acceleration CV),
+        timer environment (digit uniformity, sub-ms jitter),
+        and distribution (burstiness, kurtosis).
+        Dual scoring: Automation Score + Human-likeness Score.
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="click-test-engine.js"></script>
+<script src="click-test-detector.js"></script>
+</body>
+</html>
