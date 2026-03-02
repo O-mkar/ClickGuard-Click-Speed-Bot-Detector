@@ -2,6 +2,10 @@
 
 A browser-based click speed tester with a 14-signal bot/autoclicker detection engine. Built for educational purposes and as a research tool for testing click bot behavior.
 
+<img width="1217" height="594" alt="Screenshot 2026-03-02 at 8 50 02 am" src="https://github.com/user-attachments/assets/9510580e-a629-4d33-b00c-995a7f705779" />
+
+
+
 ## Purpose
 
 This project was developed to study and detect automated clicking tools (autoclickers, macro scripts, bot frameworks) as part of a larger project. It serves as a standalone testing and research environment for understanding the behavioral differences between human and automated input.
